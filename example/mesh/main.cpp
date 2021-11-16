@@ -7,7 +7,7 @@
 // thirdparty includes
 #include <Eigen/Dense>
 // lib includes
-#include "m0sh/regular.h"
+#include "m0sh/uniform.h"
 #include "m0sh/structured_sub.h"
 #include "p0l/interpolation.h"
 
@@ -22,7 +22,7 @@ template<typename ...Args>
 using TypeContainer = std::vector<Args...>;
 using TypeMeshStructured = m0sh::Structured<TypeVector, TypeRef, TypeContainer>;
 using TypeMeshStructuredSub = m0sh::StructuredSub<TypeVector, TypeRef, TypeContainer>;
-using TypeMeshStructuredRegular = m0sh::Regular<TypeVector, TypeRef, TypeContainer>;
+using TypeMeshStructuredUniform = m0sh::Uniform<TypeVector, TypeRef, TypeContainer>;
 // Data
 const std::size_t np = 5;
 const std::size_t n = 100;
@@ -43,10 +43,10 @@ void print(const std::shared_ptr<TypeMeshStructured>& sMesh, const TypeContainer
 
 int main() { 
     // Init
-    std::shared_ptr<TypeMeshStructured> sMesh = std::make_shared<TypeMeshStructuredRegular>(TypeContainer<std::size_t>(DIM, n), TypeContainer<TypeScalar>(DIM, l), TypeVector::Constant(0.0));
-    TypeContainer<TypeScalar> q(sMesh->size());
+    std::shared_ptr<TypeMeshStructured> sMesh = std::make_shared<TypeMeshStructuredUniform>(TypeContainer<std::size_t>(DIM, n), TypeContainer<TypeScalar>(DIM, l), TypeVector::Constant(0.0), TypeContainer<bool>(DIM, true));
+    TypeContainer<TypeScalar> q(sMesh->nbCells());
     for(std::size_t cellIndex = 0; cellIndex < q.size(); cellIndex++) {
-        TypeVector x = sMesh->x(cellIndex);
+        TypeVector x = sMesh->positionCell(cellIndex);
         q[cellIndex] = f(x[0], x[1]);
     }
     // Random setup

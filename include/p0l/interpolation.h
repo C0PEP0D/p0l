@@ -90,19 +90,19 @@ template<typename TypeMesh, template<typename ...> class TypeDataContainer, type
 TypeInterpolated lagrangeMesh(const TypeMesh& mesh, const TypeDataContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x) {
     // Compute mesh grid
     std::vector<std::vector<double>> grid(x.size());
-    for(std::size_t i = 0; i < mesh.n.size(); i++) {
-        grid[i].resize(mesh.n[i]);
+    for(std::size_t i = 0; i < mesh.nCells.size(); i++) {
+        grid[i].resize(mesh.nCells[i]);
         std::vector<int> ijk = {0, 0, 0};
-        for(std::size_t j = 0; j < mesh.n[i]; j++) {
+        for(std::size_t j = 0; j < mesh.nCells[i]; j++) {
             ijk[i] = j;
-            grid[i][j] = mesh.x(ijk)[i];
+            grid[i][j] = mesh.positionCell(ijk)[i];
         }
     }
     // Get indexs
-    std::vector<std::size_t> indexs = mesh.indexs();
+    std::vector<std::size_t> indexs = mesh.indexCells();
     // Init result
     TypeInterpolated result = ys[indexs.back()];
-    std::vector<int> ijk = mesh.ijk(indexs.back());
+    std::vector<int> ijk = mesh.ijkCell(indexs.back());
     for(std::size_t k = 0; k < x.size(); k++) {
         result *= lagrangeBasis(grid[k], ijk[k], x[k]); 
     }
@@ -111,7 +111,7 @@ TypeInterpolated lagrangeMesh(const TypeMesh& mesh, const TypeDataContainer<Type
     for (const auto& cellIndex : indexs) { 
         TypeInterpolated term = ys[cellIndex];
         // Get ijk
-        std::vector<int> ijk = mesh.ijk(cellIndex);
+        std::vector<int> ijk = mesh.ijkCell(cellIndex);
         // Compute lagrange interpolation
         for(std::size_t k = 0; k < x.size(); k++) {
             term *= lagrangeBasis(grid[k], ijk[k], x[k]); 
@@ -125,7 +125,7 @@ TypeInterpolated lagrangeMesh(const TypeMesh& mesh, const TypeDataContainer<Type
 template<typename TypeMesh, template<typename ...> class TypeContainer, typename TypeInterpolated, typename TypeVector, template<typename...> class TypeRef, typename TypeSubMesh>
 TypeInterpolated lagrangeMesh(const std::shared_ptr<TypeMesh>& sMesh, const TypeContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x, const std::size_t& n, const bool periodic = true) {
     // Compute offset
-    std::vector<int> offset = sMesh->ijk(x);
+    std::vector<int> offset = sMesh->ijkCell(x);
     for(auto& o : offset) {
         o -= n/2;
     }
@@ -135,8 +135,8 @@ TypeInterpolated lagrangeMesh(const std::shared_ptr<TypeMesh>& sMesh, const Type
             if(offset[i] < 0) {
                 offset[i] = 0;
             }
-            else if(offset[i] > sMesh->n[i] - n) {
-                offset[i] = sMesh->n[i] - n;
+            else if(offset[i] > sMesh->nCells[i] - n) {
+                offset[i] = sMesh->nCells[i] - n;
             }
         }
     }

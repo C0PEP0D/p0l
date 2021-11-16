@@ -7,7 +7,7 @@
 // thirdparty includes
 #include <Eigen/Dense>
 // lib includes
-#include "m0sh/regular.h"
+#include "m0sh/uniform.h"
 #include "m0sh/structured_sub.h"
 #include "p0l/interpolation.h"
 #include "v0l/bin/file_data.h"
@@ -23,7 +23,7 @@ template<typename ...Args>
 using TypeContainer = std::vector<Args...>;
 using TypeMeshStructured = m0sh::Structured<TypeVector, TypeRef, TypeContainer>;
 using TypeMeshStructuredSub = m0sh::StructuredSub<TypeVector, TypeRef, TypeContainer>;
-using TypeMeshStructuredRegular = m0sh::Regular<TypeVector, TypeRef, TypeContainer>;
+using TypeMeshStructuredUniform = m0sh::Uniform<TypeVector, TypeRef, TypeContainer>;
 // Data
 const std::size_t order = 4; // interpolation order
 
@@ -42,7 +42,7 @@ int main() {
         origin[i] = data.meta.origin[i];
     }
     // build create mesh
-    std::shared_ptr<TypeMeshStructured> sMesh = std::make_shared<TypeMeshStructuredRegular>(data.meta.dimensions, lengths, origin);
+    std::shared_ptr<TypeMeshStructured> sMesh = std::make_shared<TypeMeshStructuredUniform>(data.meta.dimensions, lengths, origin, TypeContainer<bool>(DIM, true));
     // interpolate
     std::cout << "interpolated value: " << p0l::lagrangeMesh<TypeMeshStructured, v0l::FileData, float, TypeVector, TypeRef, TypeMeshStructuredSub>(sMesh, data, TypeVector::Random() * 0.5, order + 1) << std::endl;
 }
