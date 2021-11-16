@@ -87,7 +87,65 @@ TypeInterpolated lagrangeVector(const TypeVectorContainer<TypeVector>& xs, const
 // Lagrange Mesh
 
 template<typename TypeMesh, template<typename ...> class TypeDataContainer, typename TypeInterpolated, typename TypeVector, template<typename...> class TypeRef>
-TypeInterpolated lagrangeMesh(const TypeMesh& mesh, const TypeDataContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x) {
+TypeInterpolated lagrangeMeshPoint(const TypeMesh& mesh, const TypeDataContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x) {
+    // Compute mesh grid
+    std::vector<std::vector<double>> grid(x.size());
+    for(std::size_t i = 0; i < mesh.nPoints.size(); i++) {
+        grid[i].resize(mesh.nPoints[i]);
+        std::vector<int> ijk = {0, 0, 0};
+        for(std::size_t j = 0; j < mesh.nPoints[i]; j++) {
+            ijk[i] = j;
+            grid[i][j] = mesh.positionPoint(ijk)[i];
+        }
+    }
+    // Get indexs
+    std::vector<std::size_t> indexs = mesh.indexPoints();
+    // Init result
+    TypeInterpolated result = ys[indexs.back()];
+    std::vector<int> ijk = mesh.ijkPoint(indexs.back());
+    for(std::size_t k = 0; k < x.size(); k++) {
+        result *= lagrangeBasis(grid[k], ijk[k], x[k]); 
+    }
+    indexs.pop_back();
+    // Compute each term
+    for (const auto& pointIndex : indexs) { 
+        TypeInterpolated term = ys[pointIndex];
+        // Get ijk
+        std::vector<int> ijk = mesh.ijkPoint(pointIndex);
+        // Compute lagrange interpolation
+        for(std::size_t k = 0; k < x.size(); k++) {
+            term *= lagrangeBasis(grid[k], ijk[k], x[k]); 
+        }
+        result += term;
+    }
+    // Retrun result
+    return result;
+}
+
+template<typename TypeMesh, template<typename ...> class TypeContainer, typename TypeInterpolated, typename TypeVector, template<typename...> class TypeRef, typename TypeSubMesh>
+TypeInterpolated lagrangeMeshPoint(const std::shared_ptr<TypeMesh>& sMesh, const TypeContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x, const std::size_t& n, const bool periodic = true) {
+    // Compute offset
+    std::vector<int> offset = sMesh->ijkPoint(x);
+    for(auto& o : offset) {
+        o -= n/2;
+    }
+    // If not periodic then be sure you are inside
+    if(not periodic) {
+        for(std::size_t i = 0; i < offset.size(); i++) {
+            if(offset[i] < 0) {
+                offset[i] = 0;
+            }
+            else if(offset[i] > sMesh->nPoints[i] - n) {
+                offset[i] = sMesh->nPoints[i] - n;
+            }
+        }
+    }
+    // Build subMesh and compute
+    return lagrangeMeshPoint<TypeSubMesh, TypeContainer, TypeInterpolated, TypeVector, TypeRef>(TypeSubMesh(std::vector<std::size_t>(x.size(), n), offset, sMesh), ys, x);
+}
+
+template<typename TypeMesh, template<typename ...> class TypeDataContainer, typename TypeInterpolated, typename TypeVector, template<typename...> class TypeRef>
+TypeInterpolated lagrangeMeshCell(const TypeMesh& mesh, const TypeDataContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x) {
     // Compute mesh grid
     std::vector<std::vector<double>> grid(x.size());
     for(std::size_t i = 0; i < mesh.nCells.size(); i++) {
@@ -123,7 +181,7 @@ TypeInterpolated lagrangeMesh(const TypeMesh& mesh, const TypeDataContainer<Type
 }
 
 template<typename TypeMesh, template<typename ...> class TypeContainer, typename TypeInterpolated, typename TypeVector, template<typename...> class TypeRef, typename TypeSubMesh>
-TypeInterpolated lagrangeMesh(const std::shared_ptr<TypeMesh>& sMesh, const TypeContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x, const std::size_t& n, const bool periodic = true) {
+TypeInterpolated lagrangeMeshCell(const std::shared_ptr<TypeMesh>& sMesh, const TypeContainer<TypeInterpolated>& ys, const TypeRef<const TypeVector>& x, const std::size_t& n, const bool periodic = true) {
     // Compute offset
     std::vector<int> offset = sMesh->ijkCell(x);
     for(auto& o : offset) {
@@ -141,7 +199,7 @@ TypeInterpolated lagrangeMesh(const std::shared_ptr<TypeMesh>& sMesh, const Type
         }
     }
     // Build subMesh and compute
-    return lagrangeMesh<TypeSubMesh, TypeContainer, TypeInterpolated, TypeVector, TypeRef>(TypeSubMesh(std::vector<std::size_t>(x.size(), n), offset, sMesh), ys, x);
+    return lagrangeMeshCell<TypeSubMesh, TypeContainer, TypeInterpolated, TypeVector, TypeRef>(TypeSubMesh(std::vector<std::size_t>(x.size(), n), offset, sMesh), ys, x);
 }
 
 }

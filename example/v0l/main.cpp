@@ -44,5 +44,5 @@ int main() {
     // build create mesh
     std::shared_ptr<TypeMeshStructured> sMesh = std::make_shared<TypeMeshStructuredUniform>(data.meta.dimensions, lengths, origin, TypeContainer<bool>(DIM, true));
     // interpolate
-    std::cout << "interpolated value: " << p0l::lagrangeMesh<TypeMeshStructured, v0l::FileData, float, TypeVector, TypeRef, TypeMeshStructuredSub>(sMesh, data, TypeVector::Random() * 0.5, order + 1) << std::endl;
+    std::cout << "interpolated value: " << p0l::lagrangeMeshCell<TypeMeshStructured, v0l::FileData, float, TypeVector, TypeRef, TypeMeshStructuredSub>(sMesh, data, TypeVector::Random() * 0.5, order + 1) << std::endl;
 }

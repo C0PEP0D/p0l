@@ -35,7 +35,7 @@ double f(const double x, const double y) {
 void print(const std::shared_ptr<TypeMeshStructured>& sMesh, const TypeContainer<TypeScalar> q, std::uniform_real_distribution<TypeScalar>& uniform, std::default_random_engine& e) {
     const TypeVector x = {uniform(e), uniform(e)};
     const double analy = f(x[0], x[1]);
-    double interp = p0l::lagrangeMesh<TypeMeshStructured, TypeContainer, double, TypeVector, TypeRef, TypeMeshStructuredSub>(sMesh, q, x, np);
+    double interp = p0l::lagrangeMeshPoint<TypeMeshStructured, TypeContainer, double, TypeVector, TypeRef, TypeMeshStructuredSub>(sMesh, q, x, np);
     double error = std::abs(analy - interp);
     double relative = error / analy;
     std::cout << "Interpolation using " << np << " grid points (" << std::pow(np, DIM) << " points)." << " x : \n" << x << "\n Analy : " << analy << " Result : " << interp << " | error = " << error << " | relative = " << relative << std::endl;
@@ -44,10 +44,10 @@ void print(const std::shared_ptr<TypeMeshStructured>& sMesh, const TypeContainer
 int main() { 
     // Init
     std::shared_ptr<TypeMeshStructured> sMesh = std::make_shared<TypeMeshStructuredUniform>(TypeContainer<std::size_t>(DIM, n), TypeContainer<TypeScalar>(DIM, l), TypeVector::Constant(0.0), TypeContainer<bool>(DIM, true));
-    TypeContainer<TypeScalar> q(sMesh->nbCells());
-    for(std::size_t cellIndex = 0; cellIndex < q.size(); cellIndex++) {
-        TypeVector x = sMesh->positionCell(cellIndex);
-        q[cellIndex] = f(x[0], x[1]);
+    TypeContainer<TypeScalar> q(sMesh->nbPoints());
+    for(std::size_t pointIndex = 0; pointIndex < q.size(); pointIndex++) {
+        TypeVector x = sMesh->positionPoint(pointIndex);
+        q[pointIndex] = f(x[0], x[1]);
     }
     // Random setup
     std::random_device r;
