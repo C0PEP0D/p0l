@@ -141,7 +141,7 @@ TypeInterpolated lagrangeMeshPoint(const std::shared_ptr<TypeMesh>& sMesh, const
         }
     }
     // Build subMesh and compute
-    return lagrangeMeshPoint<TypeSubMesh, TypeContainer, TypeInterpolated, TypeVector, TypeRef>(TypeSubMesh(std::vector<std::size_t>(x.size(), n), offset, sMesh), ys, x);
+    return lagrangeMeshPoint<TypeSubMesh, TypeContainer, TypeInterpolated, TypeVector, TypeRef>(TypeSubMesh(std::vector<std::size_t>(x.size(), n - 1), offset, sMesh), ys, x);
 }
 
 template<typename TypeMesh, template<typename ...> class TypeDataContainer, typename TypeInterpolated, typename TypeVector, template<typename...> class TypeRef>
