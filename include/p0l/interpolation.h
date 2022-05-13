@@ -104,7 +104,7 @@ TypeInterpolated lagrangeMeshPoint(const TypeMesh& mesh, const TypeDataContainer
     TypeInterpolated result = ys[indexs.back()];
     std::vector<int> ijk = mesh.ijkPoint(indexs.back());
     for(std::size_t k = 0; k < x.size(); k++) {
-        result *= lagrangeBasis(grid[k], ijk[k], x[k]); 
+        result *= lagrangeBasis(grid[k], ijk[k], x[k]);
     }
     indexs.pop_back();
     // Compute each term
